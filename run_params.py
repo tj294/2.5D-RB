@@ -8,7 +8,8 @@ Nx, Nz = 256, 64
 Pr = 0.8
 Ra = 1e6
 Ta = 5e6
-phi = np.pi / 6  # latitude of box in radians
+phi = np.radians(45)  # latitude of box in radians
+
 
 dt = 3e-6
 max_dt = 1e-3

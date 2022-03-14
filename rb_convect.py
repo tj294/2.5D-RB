@@ -21,6 +21,10 @@ from dedalus.extras import flow_tools
 logger = logging.getLogger(__name__)
 
 
+class NaNFlowError(Exception):
+    pass
+
+
 # ====================
 # =====CLA PARSING====
 # ====================
@@ -74,21 +78,21 @@ def initialise_problem(domain, phi, Ra, Pr, Ta):
 
     # x-component of Navier Stokes equation
     problem.add_equation(
-        "dt(u) - Pr*(dx(dx(u)) + dz(uz)) + dx(P) - Ta*(v*sin(phi) - w*cos(phi)) = -(u*dx(u) + w*uz)"
+        "dt(u) - Pr*(dx(dx(u)) + dz(uz)) + dx(P) + Ta*(v*sin(phi) - w*cos(phi)) = -(u*dx(u) + w*uz)"
     )
 
     # y-component of Navier Stokes equation
     problem.add_equation(
-        "dt(v) - Pr*(dx(dx(v)) + dz(vz)) + Ta*u*sin(phi) = -(u*dx(v) + w*vz)"
+        "dt(v) - Pr*(dx(dx(v)) + dz(vz)) - Ta*u*sin(phi) = -(u*dx(v) + w*vz)"
     )
 
     # z-component of Navier Stokes equation
     problem.add_equation(
-        "dt(w) - Pr*(dx(dx(w)) + dz(wz)) + dz(P) - Ta*u*cos(phi) - Ra*Pr*T = -(u*dx(w) + w*wz)"
+        "dt(w) - Pr*(dx(dx(w)) + dz(wz)) + dz(P) + Ta*u*cos(phi) - Ra*Pr*T = -(u*dx(w) + w*wz)"
     )
 
     # Temperature equation
-    problem.add_equation("dt(T) - (dx(dx(T)) + dz(Tz)) = -(u*dx(T) + w*Tz)")
+    problem.add_equation("dt(T) - Pr*(dx(dx(T)) + dz(Tz)) = -(u*dx(T) + w*Tz)")
 
     # ====================
     # Add boundary conditions
@@ -169,13 +173,14 @@ problem = initialise_problem(domain, phi, Ra, Pr, Ta)
 # ====================
 solver = problem.build_solver(de.timesteppers.RK222)
 logger.info("Solver built")
-print("=============\n")
+# print("=============\n")
 
 # ====================
 # Initial Conditions
 # ====================
 if not args.initial:
-    x, z = domain.all_grids()
+    x = domain.grid(0)
+    z = domain.grid(1)
     T = solver.state["T"]
     Tz = solver.state["Tz"]
     # Random temperature perturbations
@@ -237,7 +242,16 @@ if save:
     snapshots.add_system(solver.state)
 
     # Analysis tasks
-    analysis = analysis_task_setup(solver, outpath, rp.analysis_iter)
+    # analysis = analysis_task_setup(solver, outpath, rp.analysis_iter)
+    analysis = solver.evaluator.add_file_handler(
+        outpath + "analysis", iter=rp.analysis_iter, max_writes=5000
+    )
+
+    analysis.add_task("integ( T * w , 'x')/L", layout="g", name="L_conv")
+    analysis.add_task("integ( (-1)*Tz, 'x') * Pr/L", layout="g", name="L_cond")
+    analysis.add_task(
+        "integ( integ( 0.5 * u*u * w*w, 'x'), 'z')", layout="g", name="KE"
+    )
 
 
 try:
@@ -253,6 +267,10 @@ try:
                 )
             )
             logger.info("Max Re = {:1.3e}".format(flow.max("Re")))
+        if np.isnan(flow.max("Re")):
+            raise NaNFlowError
+except NaNFlowError:
+    logger.error("Max Re is NaN, triggering end of main loop")
 except KeyboardInterrupt:
     logger.error("Interrupted by user, triggering end of main loop")
 except:
