@@ -49,8 +49,8 @@ z = np.array(z.grid(1))
 # ====================
 # Plot Fluxes
 # ====================
-avg_t_start = 0.6
-avg_t_stop = 1.3
+avg_t_start = 0.8
+avg_t_stop = 1.5
 
 if args.flux:
     with h5py.File(direc + "analysis/analysis_s1.h5", "r") as file:
