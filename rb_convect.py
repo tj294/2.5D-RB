@@ -1,6 +1,11 @@
 """
 2.5D Rotating Boussinesq Rayleigh-Bénard Convection
 Author: Tom Joshi-Cale
+
+TO DO:
+    - Add in a section that writes an analysis sheet with the input params, both
+    to double check the simulation running is what I want, and to allow reading
+    in of parameters for continuing a simulation.
 """
 # ===================
 # ======IMPORTS======
@@ -11,6 +16,7 @@ import os
 from datetime import datetime
 import time
 import pathlib
+import shutil
 
 import argparse
 import run_params as rp
@@ -171,7 +177,7 @@ problem = initialise_problem(domain, phi, Ra, Pr, Ta)
 # ====================
 # Build IVP Solver
 # ====================
-solver = problem.build_solver(de.timesteppers.RK222)
+solver = problem.build_solver(de.timesteppers.CNAB2)
 logger.info("Solver built")
 # print("=============\n")
 
@@ -286,3 +292,5 @@ finally:
             (end_time - start_time) / 60 / 60 * domain.dist.comm_cart.size
         )
     )
+    if pathlib.Path("__pycache__").exists():
+        shutil.rmtree("__pycache__")
