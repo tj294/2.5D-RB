@@ -177,7 +177,7 @@ problem = initialise_problem(domain, phi, Ra, Pr, Ta)
 # ====================
 # Build IVP Solver
 # ====================
-solver = problem.build_solver(de.timesteppers.CNAB2)
+solver = problem.build_solver(de.timesteppers.RK222)
 logger.info("Solver built")
 # print("=============\n")
 
