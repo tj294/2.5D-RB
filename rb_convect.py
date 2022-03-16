@@ -292,5 +292,3 @@ finally:
             (end_time - start_time) / 60 / 60 * domain.dist.comm_cart.size
         )
     )
-    if pathlib.Path("__pycache__").exists():
-        shutil.rmtree("__pycache__")
