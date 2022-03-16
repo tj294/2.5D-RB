@@ -49,7 +49,7 @@ z = np.array(z.grid(1))
 # ====================
 # Plot Fluxes
 # ====================
-avg_t_start = 0.8
+avg_t_start = 1.2
 avg_t_stop = 1.5
 
 if args.flux:
@@ -139,9 +139,8 @@ if args.heatmap:
                 eta = sec_per_frame * (n_iter - i)
                 print(
                     "image {}/{} at {:.3f}ips \t| ETA in {}m {}s".format(
-                        i, n_iter, sec_per_frame, int(eta // 60), int(eta % 60),
-                    ),
-                    end="\r",
+                        i, n_iter, sec_per_frame, int(eta // 60), int(eta % 60)
+                    )
                 )
 
             fig.suptitle(
@@ -217,7 +216,7 @@ if args.KE:
     ax = fig.add_subplot(111)
     ax.plot(snap_t, KE, "k")
     ax.set_xlabel(r"time [$\tau_\kappa$]")
-    ax.set_label("KE")
+    ax.set_ylabel("KE")
     plt.show()
     plt.close()
 
