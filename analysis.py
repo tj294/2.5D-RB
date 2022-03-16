@@ -49,8 +49,8 @@ z = np.array(z.grid(1))
 # ====================
 # Plot Fluxes
 # ====================
-avg_t_start = 01.0
-avg_t_stop = 1.5
+avg_t_start = float(input("Start average at: "))
+avg_t_stop = float(input("End average at: "))
 
 if args.flux:
     with h5py.File(direc + "analysis/analysis_s1.h5", "r") as file:
@@ -94,9 +94,6 @@ if args.flux:
     KE_ax.axvspan(
         snap_t[ASI], snap_t[AEI], color="r", alpha=0.5, label="Flux averaging"
     )
-    # KE_ax.legend()
-
-    # KE_ax.vlines((snap_t[ASI], snap_t[AEI]), 0, np.max(KE))
 
     L_ax = fig.add_subplot(212)
     L_ax.plot(z, mean_L_cond, "r", linestyle="-", label=r"$L_{cond}$")
