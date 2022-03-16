@@ -1,4 +1,7 @@
 # Dedalus code for 2.5D rotating Boussinesq Rayleigh Bérnard Convection
+
+Still a WIP - currently rotating isn't resulting in misalignment of convective rolls with gravity. Also, isn't working for low phi or phi ~90
+
 ## For single-core (local sims)
 1. Run the simulation
 ```bash
