@@ -49,10 +49,11 @@ z = np.array(z.grid(1))
 # ====================
 # Plot Fluxes
 # ====================
-avg_t_start = float(input("Start average at: "))
-avg_t_stop = float(input("End average at: "))
-
 if args.flux:
+
+    avg_t_start = float(input("Start average at: "))
+    avg_t_stop = float(input("End average at: "))
+
     with h5py.File(direc + "analysis/analysis_s1.h5", "r") as file:
         L_cond_arr = np.array(file["tasks"]["L_cond"])[:, 0]
         L_conv_arr = np.array(file["tasks"]["L_conv"])[:, 0]
