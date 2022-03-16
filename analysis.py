@@ -49,16 +49,15 @@ z = np.array(z.grid(1))
 # ====================
 # Plot Fluxes
 # ====================
-avg_t_start = 1.2
+avg_t_start = 01.0
 avg_t_stop = 1.5
 
 if args.flux:
     with h5py.File(direc + "analysis/analysis_s1.h5", "r") as file:
         L_cond_arr = np.array(file["tasks"]["L_cond"])[:, 0]
         L_conv_arr = np.array(file["tasks"]["L_conv"])[:, 0]
+        KE = np.array(file["tasks"]["KE"])[:, 0]
         snap_t = np.array(file["scales"]["sim_time"])
-
-    print(L_cond_arr)
 
     if (
         (avg_t_start <= snap_t[0])
@@ -72,28 +71,40 @@ if args.flux:
             )
         )
         pass
-    ASI = (np.abs(snap_t - avg_t_stop)).argmin()
+    ASI = np.abs(snap_t - avg_t_start).argmin()
     if np.isnan(avg_t_stop):
         AEI = -1
     else:
         AEI = np.abs(snap_t - avg_t_stop).argmin()
     avg_t_range = snap_t[AEI] - snap_t[ASI]
+    print("Averaging between {} and {}".format(snap_t[ASI], snap_t[AEI]))
 
-    mean_L_cond = np.mean(np.array(L_cond_arr), axis=0)
-    mean_L_conv = np.mean(np.array(L_conv_arr), axis=0)
+    mean_L_cond = np.mean(np.array(L_cond_arr[ASI:AEI]), axis=0)
+    mean_L_conv = np.mean(np.array(L_conv_arr[ASI:AEI]), axis=0)
 
     mean_L_tot = mean_L_cond + mean_L_conv
     del_L = np.max(np.abs(1.0 - mean_L_tot))
     print("max del_L = {}".format(del_L))
 
     fig = plt.figure(figsize=(6, 6))
-    ax = fig.add_subplot(111)
-    ax.plot(z, mean_L_cond, "r", linestyle="-", label=r"$L_{cond}$")
-    ax.plot(z, mean_L_conv, "g", linestyle="-", label=r"$L_{conv}$")
-    ax.plot(z, mean_L_tot, "k", ls="-", label=r"$L_{total}$")
-    ax.set_xlabel("z")
-    ax.set_ylabel("L")
-    ax.legend()
+    KE_ax = fig.add_subplot(311)
+    KE_ax.plot(snap_t, KE, "k", label="Kinetic Energy")
+    KE_ax.set_xlabel(r"time [$\tau_\kappa$]")
+    KE_ax.set_ylabel("KE")
+    KE_ax.axvspan(
+        snap_t[ASI], snap_t[AEI], color="r", alpha=0.5, label="Flux averaging"
+    )
+    # KE_ax.legend()
+
+    # KE_ax.vlines((snap_t[ASI], snap_t[AEI]), 0, np.max(KE))
+
+    L_ax = fig.add_subplot(212)
+    L_ax.plot(z, mean_L_cond, "r", linestyle="-", label=r"$L_{cond}$")
+    L_ax.plot(z, mean_L_conv, "g", linestyle="-", label=r"$L_{conv}$")
+    L_ax.plot(z, mean_L_tot, "k", ls="-", label=r"$L_{total}$")
+    L_ax.set_xlabel("z")
+    L_ax.set_ylabel("L")
+    L_ax.legend()
     plt.savefig(direc + "fluxes.png")
     plt.show()
     plt.close()
