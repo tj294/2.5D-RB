@@ -7,7 +7,7 @@ a = 3
 Nx, Nz = 256, 64
 Pr = 0.8
 Ra = 1e6
-Ta = 1e7
+Ta = 0
 phi = np.radians(30)  # latitude of box in radians
 
 

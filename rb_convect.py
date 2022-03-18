@@ -3,6 +3,7 @@
 Author: Tom Joshi-Cale
 
 TO DO:
+    - Fix the 2.5D bug that prevents correct convection
     - Add in a section that writes an analysis sheet with the input params, both
     to double check the simulation running is what I want, and to allow reading
     in of parameters for continuing a simulation.
@@ -57,7 +58,7 @@ if save:
     os.makedirs(outpath, exist_ok=True)
 
 if args.initial:
-    restart_path = os.path.normpath(args.initial) + "/"
+    restart_path = os.path.normpath(args.initial) + "/snapshots/"
 
 # ====================
 # FUNCTION DEFINITIONS
@@ -206,10 +207,10 @@ if not args.initial:
 
     fh_mode = "overwrite"
 else:
-    if pathlib.Path(restart_path + "restart.h5").exists():
-        write, last_dt = solver.load_state(args.initial + "restart.h5", -1)
+    if pathlib.Path(restart_path + "snapshots_s1.h5").exists():
+        write, last_dt = solver.load_state(restart_path + "snapshots_s1.h5", -1)
     else:
-        print("{}restart.h5 does not exist.".format(restart_path))
+        print("{} does not exist.".format(restart_path + "snapshots_s1.h5"))
         exit(-10)
 
     dt = last_dt
