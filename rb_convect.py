@@ -84,17 +84,17 @@ def initialise_problem(domain, phi, Ra, Pr, Ta):
 
     # x-component of Navier Stokes equation
     problem.add_equation(
-        "dt(u) - Pr*(dx(dx(u)) + dz(uz)) + dx(P) + Ta*(v*sin(phi) - w*cos(phi)) = -(u*dx(u) + w*uz)"
+        "dt(u) - Pr*(dx(dx(u)) + dz(uz)) + dx(P) - Ta*v*sin(phi) = -(u*dx(u) + w*uz)"
     )
 
     # y-component of Navier Stokes equation
     problem.add_equation(
-        "dt(v) - Pr*(dx(dx(v)) + dz(vz)) - Ta*u*sin(phi) = -(u*dx(v) + w*vz)"
+        "dt(v) - Pr*(dx(dx(v)) + dz(vz)) + Ta*(u*sin(phi) + w*cos(phi)) = -(u*dx(v) + w*vz)"
     )
 
     # z-component of Navier Stokes equation
     problem.add_equation(
-        "dt(w) - Pr*(dx(dx(w)) + dz(wz)) + dz(P) + Ta*u*cos(phi) - Ra*Pr*T = -(u*dx(w) + w*wz)"
+        "dt(w) - Pr*(dx(dx(w)) + dz(wz)) + dz(P) - Ta*v*cos(phi) - Ra*Pr*T = -(u*dx(w) + w*wz)"
     )
 
     # Temperature equation
