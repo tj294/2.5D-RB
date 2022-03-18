@@ -16,5 +16,6 @@ if __name__ == "__main__":
     from dedalus.tools import post
 
     args = docopt(__doc__)
-    post.merge_analysis(args['<base_path>'], cleanup=args['--cleanup'])
-
+    print(args["<base_path>"])
+    post.merge_analysis(args["<base_path>"] + "analysis/", cleanup=args["--cleanup"])
+    post.merge_analysis(args["<base_path>"] + "snapshots/", cleanup=args["--cleanup"])
