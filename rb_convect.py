@@ -59,7 +59,7 @@ if save:
     os.makedirs(outpath, exist_ok=True)
 
 if args.initial:
-    restart_path = os.path.normpath(args.initial) + "/snapshots/"
+    restart_path = os.path.normpath(args.initial) + "/"
 
 # ====================
 # FUNCTION DEFINITIONS
@@ -210,7 +210,7 @@ if not args.initial:
 
     fh_mode = "overwrite"
 else:
-    if pathlib.Path(restart_path + "snapshots_s1.h5").exists():
+    if pathlib.Path(restart_path + "snapshots/snapshots_s1.h5").exists():
         write, last_dt = solver.load_state(restart_path + "snapshots_s1.h5", -1)
     else:
         print("{} does not exist.".format(restart_path + "snapshots_s1.h5"))
