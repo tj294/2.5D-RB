@@ -139,7 +139,7 @@ def analysis_task_setup(solver, outpath, an_iter):
 
     # Kinetic Energy
     analysis.add_task(
-        "integ( integ( 0.5*(v*v + w*w), 'y'), 'z')/D", layout="g", name="KE"
+        "integ( integ( 0.5*(u*u + v*v + w*w), 'y'), 'z')/D", layout="g", name="KE"
     )
 
     return analysis
