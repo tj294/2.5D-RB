@@ -7,8 +7,8 @@ a = 3
 Nx, Nz = 256, 64
 Pr = 0.8
 Ra = 1e6
-Ta = 0
-phi = np.radians(30)  # latitude of box in radians
+Ta = 5e6
+phi = np.radians(45)  # latitude of box in radians
 
 
 dt = 3e-6
@@ -18,5 +18,5 @@ end_sim_time = 0.8
 end_wall_time = np.inf
 end_iteration = np.inf
 
-snapshot_iter = 50
-analysis_iter = 50
+snapshot_iter = 10
+analysis_iter = 10
