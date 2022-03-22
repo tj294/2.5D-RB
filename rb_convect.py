@@ -157,13 +157,14 @@ if not args.initial:
     Ta = rp.Ta
     phi = rp.phi
 else:
-    print("Reading initial conditions not yet implemented")
-    a = rp.a
-    Ny, Nz = rp.Ny, rp.Nz
-    Pr = rp.Pr
-    Ra = rp.Ra
-    Ta = rp.Ta
-    phi = rp.phi
+    with h5py.File(restart_path + "run_params/run_params_s1.h5", "r") as f:
+        a = int(np.array(f["tasks"]["a"]))
+        Nx = int(np.array(f["tasks"]["Nx"]))
+        Nz = int(np.array(f["tasks"]["Nz"]))
+        Pr = float(np.array(f["tasks"]["Pr"]))
+        Ra = float(np.array(f["tasks"]["Ra"]))
+        Ta = float(np.array(f["tasks"]["Ta"]))
+        phi = float(np.array(f["tasks"]["phi"]))
 
 # ====================
 # Create basis and domain
