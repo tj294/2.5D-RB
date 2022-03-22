@@ -258,7 +258,7 @@ if save:
         outpath + "run_params", wall_dt=1e20, max_writes=1
     )
     run_parameters.add_task(a, name="a")
-    run_parameters.add_task(Nx, name="Nx")
+    run_parameters.add_task(Ny, name="Ny")
     run_parameters.add_task(Nz, name="Nz")
     run_parameters.add_task(Pr, name="Pr")
     run_parameters.add_task(Ra, name="Ra")
