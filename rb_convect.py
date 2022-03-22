@@ -69,10 +69,11 @@ def initialise_problem(domain, phi, Ra, Pr, Ta):
     )
     problem.parameters["Ra"] = Ra
     problem.parameters["Pr"] = Pr
-    problem.parameters["Ta"] = Ta ** 0.5
+    problem.parameters["Ta"] = np.sqrt(Ta)
     problem.parameters["L"] = a
     problem.parameters["D"] = 1
-    problem.parameters["phi"] = phi
+    problem.parameters["cos_phi"] = np.cos(phi)
+    problem.parameters["sin_phi"] = np.sin(phi)
 
     # Set up d/dz equations
     problem.add_equation("Tz - dz(T) = 0")  # Allows Tz as shorthand for dT/dz
@@ -85,21 +86,21 @@ def initialise_problem(domain, phi, Ra, Pr, Ta):
 
     # x-component of Navier Stokes equation
     problem.add_equation(
-        "dt(u) - Pr*(dx(dx(u)) + dz(uz)) + dx(P) - Ta*v*sin(phi) = -(u*dx(u) + w*uz)"
+        "dt(u) - (dx(dx(u)) + dz(uz)) - Ta*v*sin_phi + dx(P) = -(u*dx(u) + w*uz)"
     )
 
     # y-component of Navier Stokes equation
     problem.add_equation(
-        "dt(v) - Pr*(dx(dx(v)) + dz(vz)) + Ta*(u*sin(phi) + w*cos(phi)) = -(u*dx(v) + w*vz)"
+        "dt(v) - (dx(dx(v)) + dz(vz)) + Ta*(u*sin_phi + w*cos_phi) = -(u*dx(v) + w*vz)"
     )
 
     # z-component of Navier Stokes equation
     problem.add_equation(
-        "dt(w) - Pr*(dx(dx(w)) + dz(wz)) + dz(P) - Ta*v*cos(phi) - Ra*Pr*T = -(u*dx(w) + w*wz)"
+        "dt(w) - (dx(dx(w)) + dz(wz)) - Ta*v*cos_phi + dz(P) - (Ra/Pr)*T = -(u*dx(w) + w*wz)"
     )
 
     # Temperature equation
-    problem.add_equation("dt(T) - Pr*(dx(dx(T)) + dz(Tz)) = -(u*dx(T) + w*Tz)")
+    problem.add_equation("dt(T) - (1/Pr)*(dx(dx(T)) + dz(Tz)) = -(u*dx(T) + w*Tz)")
 
     # ====================
     # Add boundary conditions
