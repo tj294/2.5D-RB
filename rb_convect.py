@@ -18,6 +18,7 @@ from datetime import datetime
 import time
 import pathlib
 import shutil
+import h5py
 
 import argparse
 import run_params as rp
@@ -58,7 +59,7 @@ if save:
     os.makedirs(outpath, exist_ok=True)
 
 if args.initial:
-    restart_path = os.path.normpath(args.initial) + "/snapshots/"
+    restart_path = os.path.normpath(args.initial) + "/"
 
 # ====================
 # FUNCTION DEFINITIONS
@@ -157,12 +158,16 @@ if not args.initial:
     phi = rp.phi
 else:
     print("Reading initial conditions not yet implemented")
-    a = rp.a
-    Nx, Nz = rp.Nx, rp.Nz
-    Pr = rp.Pr
-    Ra = rp.Ra
-    Ta = rp.Ta
-    phi = rp.phi
+    with h5py.File(
+        restart_path + "run_params/run_params_s1/run_params_s1_p0.h5", "r"
+    ) as f:
+        a = int(np.array(f["tasks"]["a"]))
+        Nx = int(np.array(f["tasks"]["Nx"]))
+        Nz = int(np.array(f["tasks"]["Nz"]))
+        Pr = float(np.array(f["tasks"]["Pr"]))
+        Ra = float(np.array(f["tasks"]["Ra"]))
+        Ta = float(np.array(f["tasks"]["Ta"]))
+        phi = float(np.array(f["tasks"]["phi"]))
 
 # ====================
 # Create basis and domain
@@ -208,10 +213,12 @@ if not args.initial:
 
     fh_mode = "overwrite"
 else:
-    if pathlib.Path(restart_path + "snapshots_s1.h5").exists():
-        write, last_dt = solver.load_state(restart_path + "snapshots_s1.h5", -1)
+    if pathlib.Path(restart_path + "snapshots/snapshots_s1.h5").exists():
+        write, last_dt = solver.load_state(
+            restart_path + "snapshots/snapshots_s1.h5", -1
+        )
     else:
-        print("{} does not exist.".format(restart_path + "snapshots_s1.h5"))
+        print("{} does not exist.".format(restart_path + "snapshots/snapshots_s1.h5"))
         exit(-10)
 
     dt = last_dt
@@ -245,14 +252,14 @@ flow.add_property("sqrt(u*u + w*w)", name="Re")
 # Save snapshots
 if save:
     snapshots = solver.evaluator.add_file_handler(
-        outpath + "snapshots", iter=rp.snapshot_iter, max_writes=5000
+        outpath + "snapshots", iter=rp.snapshot_iter, max_writes=5000, mode=fh_mode
     )
     snapshots.add_system(solver.state)
 
     # Analysis tasks
     # analysis = analysis_task_setup(solver, outpath, rp.analysis_iter)
     analysis = solver.evaluator.add_file_handler(
-        outpath + "analysis", iter=rp.analysis_iter, max_writes=5000
+        outpath + "analysis", iter=rp.analysis_iter, max_writes=5000, mode=fh_mode
     )
 
     analysis.add_task("integ( T * w , 'x')/L", layout="g", name="L_conv")
@@ -260,6 +267,20 @@ if save:
     analysis.add_task(
         "integ( integ( 0.5 * u*u * w*w, 'x'), 'z')", layout="g", name="KE"
     )
+
+    run_parameters = solver.evaluator.add_file_handler(
+        outpath + "run_params", wall_dt=1e20, max_writes=1
+    )
+    run_parameters.add_task(a, name="a")
+    run_parameters.add_task(Nx, name="Nx")
+    run_parameters.add_task(Nz, name="Nz")
+    run_parameters.add_task(Pr, name="Pr")
+    run_parameters.add_task(Ra, name="Ra")
+    run_parameters.add_task(Ta, name="Ta")
+    run_parameters.add_task(phi, name="phi")
+    run_parameters.add_task(max_dt, name="max_dt")
+    run_parameters.add_task(rp.snapshot_iter, name="snapshot_iter")
+    run_parameters.add_task(rp.analysis_iter, name="analysis_iter")
 
 
 try:
