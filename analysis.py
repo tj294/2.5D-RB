@@ -142,8 +142,8 @@ if args.heatmap:
             fig = plt.figure(figsize=(8, 6))
             gs = gridspec.GridSpec(ncols=2, nrows=3, figure=fig)
             T_ax = fig.add_subplot(gs[0:2, 0])
-            u_ax = fig.add_subplot(gs[0, 1])
-            v_ax = fig.add_subplot(gs[1, 1])
+            v_ax = fig.add_subplot(gs[0, 1])
+            w_ax = fig.add_subplot(gs[1, 1])
             KE_ax = fig.add_subplot(gs[2, :])
             if (i % 50 == 0) and (i != 0):
                 sec_per_frame = (time.time() - start_time) / i
@@ -169,6 +169,7 @@ if args.heatmap:
             c1_bar.set_label("v", rotation=0)
             v_ax.set_ylabel("z")
             v_ax.set_xlabel("y")
+            v_ax.invert_xaxis()
 
             c2 = w_ax.contourf(
                 yy,
@@ -181,6 +182,7 @@ if args.heatmap:
             c2_bar.set_label("w", rotation=0)
             w_ax.set_ylabel("z")
             w_ax.set_xlabel("y")
+            w_ax.invert_xaxis()
 
             c3 = T_ax.contourf(
                 yy,
@@ -193,6 +195,7 @@ if args.heatmap:
             c3_bar.set_label("T", rotation=0)
             T_ax.set_ylabel("z")
             T_ax.set_xlabel("y")
+            T_ax.invert_xaxis()
 
             KE_ax.plot(snap_t[:i], KE[:i], "k")
             KE_ax.set_xlabel(r"time [$\tau_\kappa$]")
