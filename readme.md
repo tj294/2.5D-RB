@@ -1,6 +1,6 @@
 # Dedalus code for 2.5D rotating Boussinesq Rayleigh Bérnard Convection
 
-Still a WIP - currently rotating isn't resulting in misalignment of convective rolls with gravity. Also, isn't working for low phi or phi ~90
+rb_convect.py is a Dedalus code that runs a 2.5D simulation in the x-z plane (so $\frac{d}{dy} = 0$), and in which quantities have been non-dimensionalised using the viscous time.
 
 ## For single-core (local sims)
 1. Run the simulation
