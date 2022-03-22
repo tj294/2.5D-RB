@@ -19,3 +19,4 @@ if __name__ == "__main__":
     print(args["<base_path>"])
     post.merge_analysis(args["<base_path>"] + "analysis/", cleanup=args["--cleanup"])
     post.merge_analysis(args["<base_path>"] + "snapshots/", cleanup=args["--cleanup"])
+    post.merge_analysis(args["<base_path>"] + "run_params/", cleanup=args["--cleanup"])
