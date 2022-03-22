@@ -3,7 +3,7 @@ Parameters for rb_convect.py
 """
 import numpy as np
 
-a = 3
+a = 1
 Nx, Nz = 256, 64
 Pr = 0.8
 Ra = 1e6
