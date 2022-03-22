@@ -254,6 +254,21 @@ if save:
     # Analysis tasks
     analysis = analysis_task_setup(solver, outpath, rp.analysis_iter)
 
+    run_parameters = solver.evaluator.add_file_handler(
+        outpath + "run_params", wall_dt=1e20, max_writes=1
+    )
+    run_parameters.add_task(a, name="a")
+    run_parameters.add_task(Nx, name="Nx")
+    run_parameters.add_task(Nz, name="Nz")
+    run_parameters.add_task(Pr, name="Pr")
+    run_parameters.add_task(Ra, name="Ra")
+    run_parameters.add_task(Ta, name="Ta")
+    run_parameters.add_task(phi, name="phi")
+    run_parameters.add_task(max_dt, name="max_dt")
+    run_parameters.add_task(rp.snapshot_iter, name="snapshot_iter")
+    run_parameters.add_task(rp.analysis_iter, name="analysis_iter")
+
+
 try:
     logger.info("Starting loop")
     start_time = time.time()
