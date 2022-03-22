@@ -157,10 +157,7 @@ if not args.initial:
     Ta = rp.Ta
     phi = rp.phi
 else:
-    print("Reading initial conditions not yet implemented")
-    with h5py.File(
-        restart_path + "run_params/run_params_s1/run_params_s1_p0.h5", "r"
-    ) as f:
+    with h5py.File(restart_path + "run_params/run_params_s1.h5", "r") as f:
         a = int(np.array(f["tasks"]["a"]))
         Nx = int(np.array(f["tasks"]["Nx"]))
         Nz = int(np.array(f["tasks"]["Nz"]))
