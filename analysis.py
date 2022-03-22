@@ -41,8 +41,10 @@ args = parser.parse_args()
 
 direc = os.path.normpath(args.input) + "/"
 
+with h5py.File(direc + "run_params/run_params_s1/run_params_s1_p0.h5", "r") as f:
+    a = int(np.array(f["tasks"]["a"]))
 
-x = de.Fourier("x", 256, interval=(0, 1), dealias=3 / 2)
+x = de.Fourier("x", 256, interval=(0, a), dealias=3 / 2)
 z = de.Chebyshev("z", 64, interval=(0, 1), dealias=3 / 2)
 x = np.array(x.grid(1))
 z = np.array(z.grid(1))
