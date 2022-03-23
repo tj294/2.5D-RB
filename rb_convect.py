@@ -1,12 +1,13 @@
 """
 2.5D Rotating Boussinesq Rayleigh-Bénard Convection
+
+Equations are for the y-z plane, and have been non-dimensionalised using viscous
+time.
+
 Author: Tom Joshi-Cale
 
 TO DO:
-    - Fix the 2.5D bug that prevents correct convection
-    - Add in a section that writes an analysis sheet with the input params, both
-    to double check the simulation running is what I want, and to allow reading
-    in of parameters for continuing a simulation.
+
 """
 # ===================
 # ======IMPORTS======
@@ -18,7 +19,6 @@ from datetime import datetime
 import time
 import pathlib
 import shutil
-import h5py
 
 import argparse
 import run_params as rp
@@ -83,25 +83,25 @@ def initialise_problem(domain, phi, Ra, Pr, Ta):
     problem.add_equation("wz - dz(w) = 0")  # Allows wz as shorthand for dw/dz
 
     # Mass continuity equation
-    problem.add_equation("dx(u) + wz = 0")
+    problem.add_equation("dy(v) + wz = 0")
 
     # x-component of Navier Stokes equation
     problem.add_equation(
-        "dt(u) - (dx(dx(u)) + dz(uz)) - Ta*v*sin_phi + dx(P) = -(u*dx(u) + w*uz)"
+        "dt(u) - (dy(dy(u)) + dz(uz)) + Ta*(w*cos_phi - v*sin_phi) = -(v*dy(u) + w*uz)"
     )
 
     # y-component of Navier Stokes equation
     problem.add_equation(
-        "dt(v) - (dx(dx(v)) + dz(vz)) + Ta*(u*sin_phi + w*cos_phi) = -(u*dx(v) + w*vz)"
+        "dt(v) - (dy(dy(v)) + dz(vz)) + Ta*u*sin_phi + dy(P) = -(v*dy(v) + w*vz)"
     )
 
     # z-component of Navier Stokes equation
     problem.add_equation(
-        "dt(w) - (dx(dx(w)) + dz(wz)) - Ta*v*cos_phi + dz(P) - (Ra/Pr)*T = -(u*dx(w) + w*wz)"
+        "dt(w) - (dy(dy(w)) + dz(wz)) - Ta*u*cos_phi + dz(P) - (Ra/Pr)*T = -(v*dy(w) + w*wz)"
     )
 
     # Temperature equation
-    problem.add_equation("dt(T) - (1/Pr)*(dx(dx(T)) + dz(Tz)) = -(u*dx(T) + w*Tz)")
+    problem.add_equation("dt(T) - (1/Pr)*(dy(dy(T)) + dz(Tz)) = -(v*dy(T) + w*Tz)")
 
     # ====================
     # Add boundary conditions
@@ -115,8 +115,8 @@ def initialise_problem(domain, phi, Ra, Pr, Ta):
 
     # Impermeable side boundaries)
     problem.add_bc("left(w) = 0")
-    problem.add_bc("right(w) = 0", condition="(nx != 0)")
-    problem.add_bc("right(P) = 0", condition="(nx == 0)")
+    problem.add_bc("right(w) = 0", condition="(ny != 0)")
+    problem.add_bc("right(P) = 0", condition="(ny == 0)")
     #
     # Top boundary fixed at T=0
     problem.add_bc("right(T) = 0")
@@ -132,14 +132,14 @@ def analysis_task_setup(solver, outpath, an_iter):
     )
 
     # Conductive Heat Flux
-    analysis.add_task("integ( (-1)*Tz, 'x')/L", layout="g", name="L_cond")
+    analysis.add_task("integ( (-1)*Tz, 'y')/L", layout="g", name="L_cond")
 
     # Convective Heat Flux
-    analysis.add_task("integ( T * w, 'x') * Pr / L", layout="g", name="L_conv")
+    analysis.add_task("integ( T * w, 'y') * Pr / L", layout="g", name="L_conv")
 
     # Kinetic Energy
     analysis.add_task(
-        "integ( integ( 0.5*(u*u + w*w), 'x'), 'z')/D", layout="g", name="KE"
+        "integ( integ( 0.5*(u*u + v*v + w*w), 'y'), 'z')/D", layout="g", name="KE"
     )
 
     return analysis
@@ -151,7 +151,7 @@ def analysis_task_setup(solver, outpath, an_iter):
 
 if not args.initial:
     a = rp.a
-    Nx, Nz = rp.Nx, rp.Nz
+    Ny, Nz = rp.Ny, rp.Nz
     Pr = rp.Pr
     Ra = rp.Ra
     Ta = rp.Ta
@@ -169,9 +169,9 @@ else:
 # ====================
 # Create basis and domain
 # ====================
-xbasis = de.Fourier("x", Nx, interval=(0, a), dealias=3 / 2)
+ybasis = de.Fourier("y", Ny, interval=(0, a), dealias=3 / 2)
 zbasis = de.Chebyshev("z", Nz, interval=(0, 1), dealias=3 / 2)
-domain = de.Domain([xbasis, zbasis], grid_dtype=np.float64)
+domain = de.Domain([ybasis, zbasis], grid_dtype=np.float64)
 
 # ====================
 # Set Up Problems
@@ -189,7 +189,7 @@ logger.info("Solver built")
 # Initial Conditions
 # ====================
 if not args.initial:
-    x = domain.grid(0)
+    y = domain.grid(0)
     z = domain.grid(1)
     T = solver.state["T"]
     Tz = solver.state["Tz"]
@@ -211,11 +211,9 @@ if not args.initial:
     fh_mode = "overwrite"
 else:
     if pathlib.Path(restart_path + "snapshots/snapshots_s1.h5").exists():
-        write, last_dt = solver.load_state(
-            restart_path + "snapshots/snapshots_s1.h5", -1
-        )
+        write, last_dt = solver.load_state(restart_path + "snapshots_s1.h5", -1)
     else:
-        print("{} does not exist.".format(restart_path + "snapshots/snapshots_s1.h5"))
+        print("{} does not exist.".format(restart_path + "snapshots_s1.h5"))
         exit(-10)
 
     dt = last_dt
@@ -240,36 +238,27 @@ cfl = flow_tools.CFL(
     max_dt=max_dt,
     threshold=0.05,
 )
-cfl.add_velocities(("u", "w"))
+cfl.add_velocities(("v", "w"))
 
 # Flow properties
 flow = flow_tools.GlobalFlowProperty(solver, cadence=10)
-flow.add_property("sqrt(u*u + w*w)", name="Re")
+flow.add_property("sqrt(v*v + w*w)", name="Re")
 
 # Save snapshots
 if save:
     snapshots = solver.evaluator.add_file_handler(
-        outpath + "snapshots", iter=rp.snapshot_iter, max_writes=5000, mode=fh_mode
+        outpath + "snapshots", iter=rp.snapshot_iter, max_writes=5000
     )
     snapshots.add_system(solver.state)
 
     # Analysis tasks
-    # analysis = analysis_task_setup(solver, outpath, rp.analysis_iter)
-    analysis = solver.evaluator.add_file_handler(
-        outpath + "analysis", iter=rp.analysis_iter, max_writes=5000, mode=fh_mode
-    )
-
-    analysis.add_task("integ( T * w , 'x')/L", layout="g", name="L_conv")
-    analysis.add_task("integ( (-1)*Tz, 'x') * Pr/L", layout="g", name="L_cond")
-    analysis.add_task(
-        "integ( integ( 0.5 * u*u * w*w, 'x'), 'z')", layout="g", name="KE"
-    )
+    analysis = analysis_task_setup(solver, outpath, rp.analysis_iter)
 
     run_parameters = solver.evaluator.add_file_handler(
         outpath + "run_params", wall_dt=1e20, max_writes=1
     )
     run_parameters.add_task(a, name="a")
-    run_parameters.add_task(Nx, name="Nx")
+    run_parameters.add_task(Ny, name="Ny")
     run_parameters.add_task(Nz, name="Nz")
     run_parameters.add_task(Pr, name="Pr")
     run_parameters.add_task(Ra, name="Ra")

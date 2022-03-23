@@ -4,10 +4,10 @@ Parameters for rb_convect.py
 import numpy as np
 
 a = 1
-Nx, Nz = 256, 64
-Pr = 0.8
+Ny, Nz = 256, 64
+Pr = 1
 Ra = 1e6
-Ta = 5e6
+Ta = 0
 phi = np.radians(45)  # latitude of box in radians
 
 

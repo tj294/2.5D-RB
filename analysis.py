@@ -44,9 +44,9 @@ direc = os.path.normpath(args.input) + "/"
 with h5py.File(direc + "run_params/run_params_s1.h5", "r") as f:
     a = int(np.array(f["tasks"]["a"]))
 
-x = de.Fourier("x", 256, interval=(0, a), dealias=3 / 2)
+y = de.Fourier("y", 256, interval=(0, a), dealias=3 / 2)
 z = de.Chebyshev("z", 64, interval=(0, 1), dealias=3 / 2)
-x = np.array(x.grid(1))
+y = np.array(y.grid(1))
 z = np.array(z.grid(1))
 # ====================
 # Plot Fluxes
@@ -122,15 +122,15 @@ if args.heatmap:
         KE = np.array(file["tasks"]["KE"])[:, 0]
     with h5py.File(direc + "snapshots/snapshots_s1.h5", "r") as file:
         T = np.array(file["tasks"]["T"])
-        u = np.array(file["tasks"]["u"])
+        v = np.array(file["tasks"]["v"])
         w = np.array(file["tasks"]["w"])
         snap_t = np.array(file["scales"]["sim_time"])
         snap_iter = np.array(file["scales"]["iteration"])
 
-    xx, zz = np.meshgrid(x, z)
+    yy, zz = np.meshgrid(y, z)
 
     maxT = np.max(T)
-    maxU = np.max(u)
+    maxV = np.max(v)
     maxW = np.max(w)
 
     n_iter = len(T[:, 0:, 0])
@@ -142,8 +142,8 @@ if args.heatmap:
             fig = plt.figure(figsize=(8, 6))
             gs = gridspec.GridSpec(ncols=2, nrows=3, figure=fig)
             T_ax = fig.add_subplot(gs[0:2, 0])
-            u_ax = fig.add_subplot(gs[0, 1])
-            v_ax = fig.add_subplot(gs[1, 1])
+            v_ax = fig.add_subplot(gs[0, 1])
+            w_ax = fig.add_subplot(gs[1, 1])
             KE_ax = fig.add_subplot(gs[2, :])
             if (i % 50 == 0) and (i != 0):
                 sec_per_frame = (time.time() - start_time) / i
@@ -158,32 +158,34 @@ if args.heatmap:
                 "Iteration: {}\n".format(snap_iter[i])
                 + r"Sim Time: {:.2f} $\tau_\kappa$".format(snap_t[i])
             )
-            c1 = u_ax.contourf(
-                xx,
+            c1 = v_ax.contourf(
+                yy,
                 zz,
-                np.transpose(u[i, :, :]),
-                levels=np.linspace(np.min(u), maxU),
+                np.transpose(v[i, :, :]),
+                levels=np.linspace(np.min(v), maxV),
                 cmap="coolwarm",
             )
-            c1_bar = fig.colorbar(c1, ax=u_ax)
-            c1_bar.set_label("u", rotation=0)
-            u_ax.set_ylabel("z")
-            u_ax.set_xlabel("x")
+            c1_bar = fig.colorbar(c1, ax=v_ax)
+            c1_bar.set_label("v", rotation=0)
+            v_ax.set_ylabel("z")
+            v_ax.set_xlabel("y")
+            v_ax.invert_xaxis()
 
-            c2 = v_ax.contourf(
-                xx,
+            c2 = w_ax.contourf(
+                yy,
                 zz,
                 np.transpose(w[i, :, :]),
                 levels=np.linspace(np.min(w), maxW),
                 cmap="coolwarm",
             )
-            c2_bar = fig.colorbar(c2, ax=v_ax)
+            c2_bar = fig.colorbar(c2, ax=w_ax)
             c2_bar.set_label("w", rotation=0)
-            v_ax.set_ylabel("z")
-            v_ax.set_xlabel("x")
+            w_ax.set_ylabel("z")
+            w_ax.set_xlabel("y")
+            w_ax.invert_xaxis()
 
             c3 = T_ax.contourf(
-                xx,
+                yy,
                 zz,
                 np.transpose(T[i, :, :]),
                 levels=np.linspace(0, maxT),
@@ -192,7 +194,8 @@ if args.heatmap:
             c3_bar = fig.colorbar(c3, ax=T_ax)
             c3_bar.set_label("T", rotation=0)
             T_ax.set_ylabel("z")
-            T_ax.set_xlabel("x")
+            T_ax.set_xlabel("y")
+            T_ax.invert_xaxis()
 
             KE_ax.plot(snap_t[:i], KE[:i], "k")
             KE_ax.set_xlabel(r"time [$\tau_\kappa$]")
